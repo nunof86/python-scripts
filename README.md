@@ -1,4 +1,7 @@
 # python-scripts
 Python Scripts for a wide variety of purposes
 
-## Test https://github.com/nunof86/python-scripts/blob/main/A_records%2Bcomments.py
+## List of scripts
+
+Get all PowerDNS A records and comments and save in a CSV file
+A_records+comments.py
