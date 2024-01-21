@@ -28,3 +28,28 @@ Nslookp from a file
 ### `remove_duplicated_IPs`
 
 Remove the duplicated IPs from a CSV file
+
+### `different_ips`
+
+Compare powerdns IPs with netbox IPs and write them in a CSV file
+
+### `removing_ips`
+
+Remove IPs based on the CSV file from the `different_ips` script
+
+### `dns_modifications`
+
+Compare the differences between the DNS of the PowerDNS and netbox and write them in a CSV file
+
+
+### `modificar_dns`
+
+Change the DNS name of the netbox IP based on a CSV file from the `dns_modifications` script
+
+### `modifications`
+
+See the differences between nebox and powerdns based on the first octets of the networks and write them in a CSV file
+
+### `change_descriptions`
+
+Change netbox descriptions based on a CSV file from the `modifications` script
