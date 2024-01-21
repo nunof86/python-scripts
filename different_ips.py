@@ -1,4 +1,5 @@
 #Compare powerdns IPs with netbox IPs (compare the json file with the CSV file from netbox)
+#Change the ips_to_keep networks_to_keep to keep IPs or network out of the comparison
 #Write a CSV file with the format (x.x.x.x/x) with IPs to remove from netbox
 #Change the JSON and CSV files to match your needs
 
