@@ -42,7 +42,7 @@ Remove IPs based on the CSV file from the `different_ips` script
 Compare the differences between the DNS of the PowerDNS and netbox and write them in a CSV file
 
 
-### `dns_modifications`
+### `change_dns`
 
 Change the DNS name of the netbox IP based on a CSV file from the `dns_modifications` script
 
