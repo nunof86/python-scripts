@@ -1,66 +1,49 @@
-#Change the DNS name of the netbox IP based on a CSV file
-#Change the CSV file to match your needs
+#Compare the differences between the DNS name of the IPs in the netbox with the data from PowerDNS and save in a CSV file
+#Change the names of the CSV files(file of netbox IPs and a CSV filewith only A records)
 
-import requests
-import urllib3
-import json
 import csv
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+import socket
 
-NETBOX_URL = 'YOUR API'
-API_TOKEN = 'YOUR API TOKEN'
+netbox_data = {}
+modifications = []
 
-headers = {
-    'Authorization': f'Token {API_TOKEN}',
-    'Content-Type': 'application/json',
-}
-
-def get_ip_id_by_address(address):
-    try:
-        response = requests.get(NETBOX_URL + f'ipam/ip-addresses/?address={address}', 
-                                headers=headers, verify=False)
-        response.raise_for_status()
-        response_data = response.json()
-
-        if response_data['count'] > 0:
-            return response_data['results'][0]['id']
-    except requests.HTTPError as err:
-        print(f"HTTP error occurred: {err}")
-    except requests.RequestException as e:
-        print(f"Request exception: {e}")
-
-    return None
-
-def update_ip_address(ip_id, dns_name):
-    data = {
-        'dns_name': dns_name,
-    }
-
-    try:
-        response = requests.patch(NETBOX_URL + f'ipam/ip-addresses/{ip_id}/', 
-                                  headers=headers, data=json.dumps(data), 
-                                  verify=False)
-        response.raise_for_status()
-
-        if response.status_code == 200:
-            print("DNS updated.")
-        else:
-            print(f"Error while changing DNS: {response.text}")
-    except requests.HTTPError as err:
-        print(f"HTTP error occurred: {err}")
-    except requests.RequestException as e:
-        print(f"Request exception: {e}")
-
-with open('Name of the file', 'r') as csv_file:
-    csv_reader = csv.DictReader(csv_file)
+with open('Name of the file', 'r') as netbox_file:
+    csv_reader = csv.DictReader(netbox_file)
     for row in csv_reader:
-        ip_address_to_update = row['address']
-        new_dns_name = row['dns_name']
+        ip_with_mask = row['IP Address']
+        dns_name = row['DNS name']
+        netbox_data[ip_with_mask] = dns_name
 
-        ip_id_to_update = get_ip_id_by_address(ip_address_to_update)
+with open('Name of the file', 'r') as ips_file:
+    csv_reader = csv.DictReader(ips_file)
+    for row in csv_reader:
+        ip = row['IP']
+        ip_found = False
+        for netbox_ip in netbox_data:
+            netbox_ip_network = netbox_ip.split('/')[0]
+            if ip == netbox_ip_network:
+                ip_found = True
+                expected_dns_name = netbox_data[netbox_ip]
+                try:
+                    host = socket.gethostbyaddr(ip)
+                    dns_name = host[0]
+                    if dns_name != expected_dns_name:
+                        if not any(mod['address'] == netbox_ip for mod in 
+                                   modifications):
+                            modifications.append({
+                                'address': netbox_ip,
+                                'netbox_dns_name': expected_dns_name,
+                                'dns_name': dns_name
+                            })
+                except socket.herror:
+                    continue
 
-        if ip_id_to_update:
-            print(f"IP found, ID: {ip_id_to_update}")
-            update_ip_address(ip_id_to_update, new_dns_name)
-        else:
-            print(f"IP '{ip_address_to_update}' not found.")
+if modifications:
+    with open('Name of the file', 'w', newline='') as csv_file:
+        fieldnames = ['address', 'netbox_dns_name', 'dns_name']
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(modifications)
+        print('Modifications saved.')
+else:
+    print('No modifications detected.')
